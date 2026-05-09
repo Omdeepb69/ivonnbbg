@@ -1,0 +1,637 @@
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #root {
+    background: #0d0b00;
+    width: 100vw;
+    height: 100vh;
+    font-family: 'Courier New', monospace;
+    color: #e8d84a;
+    overflow: hidden;
+  }
+
+  #startScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    gap: 14px;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  #gameWrapper {
+    display: none;
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: crosshair;
+    image-rendering: pixelated;
+  }
+
+  #hud {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 12px;
+    color: #e8d84a;
+    pointer-events: none;
+    line-height: 1.8;
+  }
+
+  #memePopup {
+    position: absolute;
+    top: 28%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.88);
+    border: 2px solid #e8d84a;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: #e8d84a;
+    display: none;
+    pointer-events: none;
+    text-align: center;
+    max-width: 240px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  #jumpscare {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 99;
+  }
+
+  #jumpscareImg {
+    width: 260px;
+    height: 260px;
+    object-fit: cover;
+    border: 6px solid red;
+    border-radius: 4px;
+  }
+
+  #jumpscareText {
+    font-size: 22px;
+    font-weight: 500;
+    color: red;
+    margin-top: 14px;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  #restartBtn {
+    margin-top: 12px;
+    padding: 10px 28px;
+    background: #e8d84a;
+    color: #000;
+    border: none;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  #hint {
+    position: absolute;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: #555;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  #controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 10px;
+    pointer-events: none;
+  }
+
+  #joystickWrap {
+    width: 110px;
+    height: 110px;
+    position: relative;
+    pointer-events: all;
+    touch-action: none;
+  }
+
+  #joystickBase {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    background: rgba(232, 216, 74, 0.12);
+    border: 2px solid rgba(232, 216, 74, 0.35);
+  }
+
+  #joystickThumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(232, 216, 74, 0.55);
+    position: absolute;
+    top: 33px;
+    left: 33px;
+  }
+
+  #lookPad {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    pointer-events: all;
+    align-items: flex-end;
+  }
+
+  #lookPad button {
+    width: 54px;
+    height: 46px;
+    background: rgba(232, 216, 74, 0.12);
+    border: 2px solid rgba(232, 216, 74, 0.35);
+    color: #e8d84a;
+    font-size: 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    touch-action: none;
+  }
+</style>
+
+<div id="root">
+  <div id="startScreen">
+    <img src="assets/title/Gemini_Generated_Image_hzgmmyhzgmmyhzgm-removebg-preview.png" alt="Title Logo"
+      style="max-width:300px; max-height:140px; object-fit:contain; margin-bottom:10px;" />
+    <div style="font-size:14px;color:#777;">ivon wants to goon on you. no escape. no nuttin.</div>
+    <div
+      style="width:110px;height:110px;border-radius:50%;overflow:hidden;border:3px solid #e8d84a;background:#222;margin:4px auto;">
+      <img src="assets/ivon/seen.png" style="width:100%;height:100%;object-fit:cover;" />
+    </div> <button id="startBtn"
+      style="padding:12px 32px;background:#e8d84a;color:#000;border:none;font-family:'Courier New',monospace;font-size:15px;cursor:pointer;border-radius:4px;font-weight:500;">ENTER
+      THE BACKROOMS</button>
+  </div>
+
+  <div id="gameWrapper">
+    <canvas id="gameCanvas" width="680" height="440"></canvas>
+    <div id="hud">
+      <div>SANITY: <span id="sanityVal">100</span>%</div>
+      <div>he is <span id="distVal">far away</span></div>
+    </div>
+    <div id="memePopup"></div>
+    <div id="hint">click to lock mouse</div>
+    <div id="controls">
+      <div id="joystickWrap">
+        <div id="joystickBase"></div>
+        <div id="joystickThumb"></div>
+      </div>
+      <div id="lookPad"><button id="btnL">&#8592;</button><button id="btnR">&#8594;</button></div>
+    </div>
+    <div id="jumpscare">
+      <div id="jumpscareText" style="background:rgba(0,0,0,0.6);padding:20px;border-radius:10px;text-align:center;">
+        HAPPY BIRTHDAY IDIOT<br>
+        <span style="font-size:14px;color:#fff;">u got caught lmaooo</span>
+        <div id="survivalTime" style="font-size:20px;color:#e8d84a;margin-top:15px;">Time: 0.0s | Best: 0.0s</div>
+      </div>
+      <button id="restartBtn">try again (u wont escape)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const MAP = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1],
+    [1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1],
+    [1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1],
+    [1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1],
+    [1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1],
+    [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1],
+    [1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1],
+    [1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1],
+    [1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1],
+    [1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  ];
+  const ROWS = MAP.length, COLS = MAP[0].length;
+  const M = 0.28;
+
+  function isWall(x, y) {
+    const c = Math.floor(x), r = Math.floor(y);
+    if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return true;
+    return MAP[r][c] === 1;
+  }
+  function canMove(x, y) {
+    return !isWall(x + M, y + M) && !isWall(x - M, y + M) && !isWall(x + M, y - M) && !isWall(x - M, y - M);
+  }
+
+  // BFS pathfinding on grid cells
+  function bfsNext(fromX, fromY, toX, toY) {
+    const sc = Math.floor(fromX), sr = Math.floor(fromY);
+    const gc = Math.floor(toX), gr = Math.floor(toY);
+    if (sc === gc && sr === gr) return { x: toX, y: toY };
+    const visited = Array.from({ length: ROWS }, () => new Array(COLS).fill(false));
+    const prev = Array.from({ length: ROWS }, () => new Array(COLS).fill(null));
+    const queue = [[sr, sc]];
+    visited[sr][sc] = true;
+    const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+    let found = false;
+    while (queue.length && !found) {
+      const [r, c] = queue.shift();
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr, nc = c + dc;
+        if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+        if (visited[nr][nc] || MAP[nr][nc] === 1) continue;
+        visited[nr][nc] = true;
+        prev[nr][nc] = [r, c];
+        if (nr === gr && nc === gc) { found = true; break; }
+        queue.push([nr, nc]);
+      }
+    }
+    if (!found) return null;
+    // trace path back to find first step from enemy
+    let cur = [gr, gc];
+    while (prev[cur[0]][cur[1]]) {
+      const p = prev[cur[0]][cur[1]];
+      if (p[0] === sr && p[1] === sc) break;
+      cur = p;
+    }
+    // move toward center of next cell
+    return { x: cur[1] + 0.5, y: cur[0] + 0.5 };
+  }
+
+  let player = { x: 1.5, y: 1.5, angle: 0 };
+  let enemy = { x: 15.5, y: 15.5 };
+  let pathTarget = null;
+  let pathTimer = 0;
+  const PATH_INTERVAL = 0.4;
+
+  let keys = {}, sanity = 100, caught = false, gameRunning = false;
+  let memeTimer = 0, memeActive = false, memeTimeout = null, animId = null, last = 0;
+  let mouseLocked = false;
+  let startTime = 0, bestTime = 0;
+  let joyX = 0, joyY = 0, lookBtnL = false, lookBtnR = false;
+
+  const enemyImgStatic = new Image();
+  enemyImgStatic.src = 'assets/ivon/static.jpeg';
+  const enemyImgSeen = new Image();
+  enemyImgSeen.src = 'assets/ivon/seen.png';
+  const enemyImgClose = new Image();
+  enemyImgClose.src = 'assets/ivon/close.jpeg';
+
+  const deathscreens = [
+    'assets/deathscreens/WhatsApp%20Image%202026-05-09%20at%2010.36.47.jpeg',
+    'assets/deathscreens/WhatsApp%20Image%202026-05-09%20at%2010.41.38.jpeg',
+    'assets/deathscreens/WhatsApp%20Image%202026-05-09%20at%2010.46.21.jpeg',
+    'assets/deathscreens/WhatsApp%20Image%202026-05-09%20at%2010.46.23.jpeg',
+    'assets/deathscreens/WhatsApp%20Image%202026-05-09%20at%2010.46.26.jpeg',
+    'assets/deathscreens/WhatsApp%20Image%202026-05-09%20at%2010.46.28.jpeg',
+    'assets/deathscreens/WhatsApp%20Image%202026-05-09%20at%2010.46.29%20(1).jpeg',
+    'assets/deathscreens/WhatsApp%20Image%202026-05-09%20at%2010.46.29.jpeg'
+  ];
+
+  const posterSrcs = [
+    'assets/posters/WhatsApp%20Image%202026-05-09%20at%2010.46.27%20(1).jpeg',
+    'assets/posters/WhatsApp%20Image%202026-05-09%20at%2010.46.27%20(2).jpeg',
+    'assets/posters/WhatsApp%20Image%202026-05-09%20at%2010.46.27.jpeg',
+    'assets/posters/WhatsApp%20Image%202026-05-09%20at%2010.46.28%20(1).jpeg',
+    'assets/posters/WhatsApp%20Image%202026-05-09%20at%2010.46.30.jpeg'
+  ];
+  const posters = posterSrcs.map(src => {
+    const img = new Image();
+    img.src = src;
+    return img;
+  });
+
+  const canvas = document.getElementById('gameCanvas');
+  canvas.width = 640;
+  canvas.height = 360;
+  const ctx = canvas.getContext('2d');
+  const W = 640, H = 360;
+  let zBuffer = new Float32Array(W);
+
+  const bgm = new Audio('assets/Rest%20In%20Peace%20My%20Granny%20She%20Got%20Hit%20By%20A%20Bazooka%20Original%20VS%20Roblox.mp3');
+  bgm.loop = true;
+  bgm.volume = 0.05;
+
+  const MEMES = [
+    "bro really thought he could escape fr fr",
+    "no cap he's RIGHT behind you nigger",
+    "skill issue ngl",
+    "ivon is jiggling",
+    "GYATT he's getting closer!!",
+    "bro built different (the chaser not u)",
+    "L + ratio + happy birthday",
+    "ur not gonna make it and thats on periodt",
+    "he smells ur farts rn",
+    "touch grass challenge: FAILED",
+    "this ain't it chief",
+    "literally cooked rn bro",
+  ];
+
+  function castRayDDA(angle) {
+    let rX = Math.cos(angle), rY = Math.sin(angle);
+    let mapX = Math.floor(player.x), mapY = Math.floor(player.y);
+    let deltaDistX = (rX === 0) ? 1e30 : Math.abs(1 / rX);
+    let deltaDistY = (rY === 0) ? 1e30 : Math.abs(1 / rY);
+    let stepX, stepY, sideDistX, sideDistY, side;
+    if (rX < 0) { stepX = -1; sideDistX = (player.x - mapX) * deltaDistX; }
+    else { stepX = 1; sideDistX = (mapX + 1.0 - player.x) * deltaDistX; }
+    if (rY < 0) { stepY = -1; sideDistY = (player.y - mapY) * deltaDistY; }
+    else { stepY = 1; sideDistY = (mapY + 1.0 - player.y) * deltaDistY; }
+    let hit = 0, dist = 20, wallX = 0;
+    while (hit === 0) {
+      if (sideDistX < sideDistY) { sideDistX += deltaDistX; mapX += stepX; side = 0; }
+      else { sideDistY += deltaDistY; mapY += stepY; side = 1; }
+      if (mapY < 0 || mapY >= ROWS || mapX < 0 || mapX >= COLS) { hit = 1; dist = 20; }
+      else if (MAP[mapY][mapX] === 1) {
+        hit = 1;
+        dist = (side === 0) ? (sideDistX - deltaDistX) : (sideDistY - deltaDistY);
+        wallX = (side === 0) ? (player.y + dist * rY) : (player.x + dist * rX);
+        wallX -= Math.floor(wallX);
+      }
+    }
+    return { dist, side, wallX, mapX, mapY };
+  }
+
+  const posterMap = {};
+  function initPosters() {
+    let walls = [];
+    for (let r = 1; r < ROWS - 1; r++) {
+      for (let c = 1; c < COLS - 1; c++) {
+        if (MAP[r][c] === 1) {
+          walls.push({ r, c });
+        }
+      }
+    }
+    for (let i = walls.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [walls[i], walls[j]] = [walls[j], walls[i]];
+    }
+    for (let i = 0; i < Math.min(posters.length, walls.length); i++) {
+      posterMap[`${walls[i].c},${walls[i].r}`] = posters[i];
+    }
+  }
+  initPosters();
+
+  function getPoster(mapX, mapY) {
+    return posterMap[`${mapX},${mapY}`] || null;
+  }
+
+  function drawFrame() {
+    ctx.fillStyle = '#0d0b00'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#110e00'; ctx.fillRect(0, 0, W, H / 2);
+    ctx.fillStyle = '#070500'; ctx.fillRect(0, H / 2, W, H / 2);
+    const FOV = Math.PI / 2.5;
+    const flicker = 0.86 + Math.random() * 0.14;
+    for (let i = 0; i < W; i++) {
+      const ra = player.angle - FOV / 2 + FOV * (i / W);
+      const ray = castRayDDA(ra);
+      const d = Math.max(0.1, ray.dist * Math.cos(ra - player.angle));
+      zBuffer[i] = d;
+      const wh = Math.min(H, (H / d) * 0.85);
+      const top = (H - wh) / 2;
+      const br = Math.max(0, 1 - d / 14) * flicker;
+
+      let poster = getPoster(ray.mapX, ray.mapY);
+      let baseR = ray.side === 1 ? 160 : 210;
+      let baseG = ray.side === 1 ? 130 : 182;
+      let baseB = ray.side === 1 ? 10 : 12;
+      ctx.fillStyle = `rgb(${Math.floor(baseR * br)},${Math.floor(baseG * br)},${Math.floor(baseB * br)})`;
+      ctx.fillRect(i, top, 1, wh);
+
+      if (poster && poster.complete && poster.naturalWidth > 0 && ray.wallX > 0.25 && ray.wallX < 0.75) {
+        let normX = (ray.wallX - 0.25) / 0.5;
+        let texX = Math.floor(normX * poster.naturalWidth);
+        if ((ray.side === 0 && Math.cos(ra) > 0) || (ray.side === 1 && Math.sin(ra) < 0)) {
+          texX = poster.naturalWidth - texX - 1;
+        }
+        let pHeight = wh * 0.6;
+        let pTop = top + (wh - pHeight) / 2;
+        ctx.drawImage(poster, texX, 0, 1, poster.naturalHeight, i, pTop, 1, pHeight);
+        ctx.fillStyle = `rgba(0,0,0,${1 - br})`;
+        ctx.fillRect(i, pTop, 1, pHeight);
+      }
+    }
+    drawEnemy();
+  }
+
+  function drawEnemy() {
+    const dx = enemy.x - player.x, dy = enemy.y - player.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > 14) return;
+    const angle = Math.atan2(dy, dx);
+    let rel = angle - player.angle;
+    while (rel > Math.PI) rel -= 2 * Math.PI;
+    while (rel < -Math.PI) rel += 2 * Math.PI;
+    const FOV = Math.PI / 2.5;
+    if (Math.abs(rel) > FOV) return;
+
+    const projDist = dist * Math.cos(rel);
+    if (projDist < 0.1) return;
+
+    const screenX = W / 2 + (rel / (FOV / 2)) * (W / 2);
+    const size = Math.min(1000, Math.max(20, (H / projDist) * 0.8));
+    const top = (H - size) / 2;
+    const alpha = Math.min(1, Math.max(0.05, (14 - dist) / 14));
+
+    let currentImg = enemyImgStatic;
+    if (dist < 3) currentImg = enemyImgClose;
+    else if (dist < 8) currentImg = enemyImgSeen;
+
+    if (currentImg.complete && currentImg.naturalWidth > 0) {
+      const drawStartX = Math.floor(Math.max(0, screenX - size / 2));
+      const drawEndX = Math.floor(Math.min(W, screenX + size / 2));
+
+      ctx.globalAlpha = alpha;
+      for (let i = drawStartX; i < drawEndX; i++) {
+        if (projDist < zBuffer[i]) {
+          const texX = Math.floor(((i - (screenX - size / 2)) / size) * currentImg.naturalWidth);
+          ctx.drawImage(currentImg, texX, 0, 1, currentImg.naturalHeight, i, top, 1, size);
+        }
+      }
+      ctx.globalAlpha = 1.0;
+    } else {
+      if (projDist < zBuffer[Math.floor(screenX)]) {
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = '#ff5050';
+        ctx.beginPath(); ctx.arc(screenX, H / 2, size / 2, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1.0;
+      }
+    }
+    if (dist < 1.3 && !caught) triggerJumpscare();
+  }
+
+  function updateEnemy(dt) {
+    pathTimer += dt;
+    if (pathTimer >= PATH_INTERVAL) {
+      pathTimer = 0;
+      pathTarget = bfsNext(enemy.x, enemy.y, player.x, player.y);
+    }
+    if (!pathTarget) return;
+    const dx = pathTarget.x - enemy.x, dy = pathTarget.y - enemy.y;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    // speed ramps up as sanity drops
+    const spd = (0.9 + ((100 - sanity) / 100) * 0.8) * dt;
+    if (d < 0.05) { pathTarget = null; return; }
+    const step = Math.min(spd, d);
+    const nx = enemy.x + dx / d * step, ny = enemy.y + dy / d * step;
+    if (canMove(nx, enemy.y)) enemy.x = nx;
+    if (canMove(enemy.x, ny)) enemy.y = ny;
+  }
+
+  function triggerJumpscare() {
+    caught = true; gameRunning = false; cancelAnimationFrame(animId);
+    if (document.pointerLockElement) document.exitPointerLock();
+
+    bgm.pause();
+
+    const survivalTime = ((performance.now() - startTime) / 1000).toFixed(1);
+    if (parseFloat(survivalTime) > bestTime) bestTime = parseFloat(survivalTime);
+
+    document.getElementById('survivalTime').textContent = `Time: ${survivalTime}s | Best: ${bestTime.toFixed(1)}s`;
+
+    const randomBg = deathscreens[Math.floor(Math.random() * deathscreens.length)];
+    const js = document.getElementById('jumpscare');
+    js.style.backgroundImage = `url('${randomBg}')`;
+    js.style.backgroundSize = 'cover';
+    js.style.backgroundPosition = 'center';
+    js.style.display = 'flex';
+    try {
+      const ac = new AudioContext();
+      const sr = ac.sampleRate, buf = ac.createBuffer(1, sr * 0.5, sr), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++)d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (sr * 0.1)) * 2;
+      const s = ac.createBufferSource(); s.buffer = buf; s.connect(ac.destination); s.start();
+    } catch (e) { }
+  }
+
+  function showMeme() {
+    if (memeActive) return; memeActive = true;
+    const el = document.getElementById('memePopup');
+    el.textContent = MEMES[Math.floor(Math.random() * MEMES.length)];
+    el.style.display = 'block';
+    clearTimeout(memeTimeout);
+    memeTimeout = setTimeout(() => { el.style.display = 'none'; memeActive = false; }, 2400);
+  }
+
+  function loop(ts) {
+    if (!gameRunning) return;
+    const dt = Math.min((ts - last) / 1000, 0.05); last = ts;
+    const spd = 2.8 * dt, turn = 3.0 * dt;
+
+    if (keys['ArrowLeft'] || keys['a'] || keys['A'] || lookBtnL) player.angle -= turn;
+    if (keys['ArrowRight'] || keys['d'] || keys['D'] || lookBtnR) player.angle += turn;
+    if (joyX !== 0) player.angle += joyX * turn * 1.6;
+
+    let fx = 0, fy = 0;
+    if (keys['ArrowUp'] || keys['w'] || keys['W']) { fx += Math.cos(player.angle) * spd; fy += Math.sin(player.angle) * spd; }
+    if (keys['ArrowDown'] || keys['s'] || keys['S']) { fx -= Math.cos(player.angle) * spd; fy -= Math.sin(player.angle) * spd; }
+    if (joyY !== 0) { fx += Math.cos(player.angle) * (-joyY * spd); fy += Math.sin(player.angle) * (-joyY * spd); }
+
+    if (canMove(player.x + fx, player.y)) player.x += fx;
+    if (canMove(player.x, player.y + fy)) player.y += fy;
+
+    updateEnemy(dt);
+
+    const ddx = enemy.x - player.x, ddy = enemy.y - player.y;
+    const dist = Math.sqrt(ddx * ddx + ddy * ddy);
+    sanity = Math.max(0, sanity - (dt * (dist < 4 ? 5 : dist < 7 ? 1.5 : 0.3)));
+    
+    bgm.volume = Math.max(0.02, Math.min(1.0, 1.2 - (dist / 12)));
+    
+    document.getElementById('sanityVal').textContent = Math.round(sanity);
+    document.getElementById('distVal').textContent =
+      dist < 2 ? 'RIGHT BEHIND U BRO!!!' : dist < 4 ? 'getting very close...' : dist < 7 ? 'nearby...' : dist < 10 ? 'closing in...' : 'far away';
+
+    memeTimer += dt;
+    if (memeTimer > 6 + Math.random() * 5) { memeTimer = 0; showMeme(); }
+    drawFrame();
+    animId = requestAnimationFrame(loop);
+  }
+
+  function startGame() {
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('gameWrapper').style.display = 'block';
+    document.getElementById('jumpscare').style.display = 'none';
+    player = { x: 1.5, y: 1.5, angle: 0 };
+    enemy = { x: 15.5, y: 15.5 };
+    pathTarget = null; pathTimer = PATH_INTERVAL;
+    sanity = 100; caught = false; memeTimer = 0; memeActive = false;
+    gameRunning = true; last = performance.now();
+    startTime = performance.now();
+
+    bgm.currentTime = 0;
+    bgm.play().catch(e => console.log('Audio play failed:', e));
+
+    animId = requestAnimationFrame(loop);
+  }
+
+  document.getElementById('startBtn').onclick = startGame;
+  document.getElementById('restartBtn').onclick = startGame;
+  document.addEventListener('keydown', e => { keys[e.key] = true; if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault(); });
+  document.addEventListener('keyup', e => { keys[e.key] = false; });
+  canvas.addEventListener('click', () => { if (gameRunning && canvas.requestPointerLock) canvas.requestPointerLock(); });
+  document.addEventListener('pointerlockchange', () => {
+    mouseLocked = document.pointerLockElement === canvas;
+    document.getElementById('hint').style.display = mouseLocked ? 'none' : 'block';
+  });
+  document.addEventListener('mousemove', e => { if (mouseLocked && gameRunning) player.angle += e.movementX * 0.003; });
+
+  const joyWrap = document.getElementById('joystickWrap');
+  const joyThumb = document.getElementById('joystickThumb');
+  const joyBase = document.getElementById('joystickBase');
+  let joyActive = false, joyId = null, joyOrigin = { x: 0, y: 0 };
+  function joyStart(cx, cy) { const r = joyBase.getBoundingClientRect(); joyOrigin = { x: r.left + r.width / 2, y: r.top + r.height / 2 }; joyActive = true; }
+  function joyMove(cx, cy) {
+    if (!joyActive) return;
+    const dx = cx - joyOrigin.x, dy = cy - joyOrigin.y;
+    const dist = Math.sqrt(dx * dx + dy * dy), max = 42, cl = Math.min(dist, max);
+    const ax = dist > 0 ? dx / dist : 0, ay = dist > 0 ? dy / dist : 0;
+    joyX = ax * (cl / max); joyY = ay * (cl / max);
+    joyThumb.style.left = (33 + ax * cl) + 'px'; joyThumb.style.top = (33 + ay * cl) + 'px';
+  }
+  function joyEnd() { joyActive = false; joyX = 0; joyY = 0; joyThumb.style.left = '33px'; joyThumb.style.top = '33px'; }
+  joyWrap.addEventListener('touchstart', e => { e.preventDefault(); const t = e.changedTouches[0]; joyId = t.identifier; joyStart(t.clientX, t.clientY); }, { passive: false });
+  joyWrap.addEventListener('touchmove', e => { e.preventDefault(); for (const t of e.changedTouches) if (t.identifier === joyId) joyMove(t.clientX, t.clientY); }, { passive: false });
+  joyWrap.addEventListener('touchend', e => { e.preventDefault(); joyEnd(); }, { passive: false });
+  joyWrap.addEventListener('mousedown', e => { joyStart(e.clientX, e.clientY); });
+  document.addEventListener('mousemove', e => { if (joyActive && !mouseLocked) joyMove(e.clientX, e.clientY); });
+  document.addEventListener('mouseup', () => { if (joyActive) joyEnd(); });
+  const btnL = document.getElementById('btnL'), btnR = document.getElementById('btnR');
+  function holdBtn(b, s) {
+    ['touchstart', 'mousedown'].forEach(ev => b.addEventListener(ev, e => { e.preventDefault(); s(true); }, { passive: false }));
+    ['touchend', 'touchcancel', 'mouseup'].forEach(ev => b.addEventListener(ev, e => { e.preventDefault(); s(false); }));
+  }
+  holdBtn(btnL, v => lookBtnL = v); holdBtn(btnR, v => lookBtnR = v);
+</script>
