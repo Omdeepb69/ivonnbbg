@@ -503,7 +503,7 @@
     const dx = pathTarget.x - enemy.x, dy = pathTarget.y - enemy.y;
     const d = Math.sqrt(dx * dx + dy * dy);
     // speed ramps up as sanity drops
-    const spd = (0.9 + ((100 - sanity) / 100) * 0.8) * dt;
+    const spd = (1.4 + ((100 - sanity) / 100) * 1.2) * dt;
     if (d < 0.05) { pathTarget = null; return; }
     const step = Math.min(spd, d);
     const nx = enemy.x + dx / d * step, ny = enemy.y + dy / d * step;
@@ -525,7 +525,7 @@
     const randomBg = deathscreens[Math.floor(Math.random() * deathscreens.length)];
     const js = document.getElementById('jumpscare');
     js.style.backgroundImage = `url('${randomBg}')`;
-    js.style.backgroundSize = 'cover';
+    js.style.backgroundSize = '100% 100%';
     js.style.backgroundPosition = 'center';
     js.style.display = 'flex';
     try {
